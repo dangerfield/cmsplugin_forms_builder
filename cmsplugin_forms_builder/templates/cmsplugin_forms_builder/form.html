@@ -8,7 +8,7 @@
 		        {{ hidden }}
 		        {% endfor %}
 		        {{ form_for_form.as_p }}
-		        <input type="submit" value="{{ form.button_text }}" />
+		        <p><input type="submit" value="{{ form.button_text }}" /></p>
 		    </form>
 		{% else %}
 		    {{ form.response|safe }}

@@ -13,7 +13,7 @@ from django.contrib.sites.models import Site
 class PluginForm(CMSPluginBase):
     model = PluginFormModel
     name = _("Form Builder")
-    render_template = "forms/form.html"
+    render_template = "cmsplugin_forms_builder/form.html"
 
     def render(self, context, instance, placeholder):
         request = context['request']
