@@ -6,6 +6,9 @@ from django.core.mail import EmailMessage
 from django.utils.translation import ugettext_lazy as _
 from forms_builder.forms.forms import FormForForm
 from django.conf import settings
+from forms_builder.forms.models import Form
+from forms_builder.forms.settings import USE_SITES
+from django.contrib.sites.models import Site
 
 class PluginForm(CMSPluginBase):
     model = PluginFormModel
@@ -15,9 +18,17 @@ class PluginForm(CMSPluginBase):
     def render(self, context, instance, placeholder):
         request = context['request']
         form = instance.form
+        context.update({'form': form, 'published' : True, 'valid': False})
         if form.login_required and not request.user.is_authenticated():
-            context.update({'form': form})
             return context
+        
+        published = Form.objects.published(for_user=request.user)
+        if USE_SITES:
+            published = published.filter(sites=Site.objects.get_current())
+        if form not in published:
+            context.update({'published': False})
+            return context
+            
         form_for_form = FormForForm(form)
         form_for_form.fields['cms_form_id'] = forms.CharField(initial=form.id, widget=forms.HiddenInput)
         
@@ -25,6 +36,7 @@ class PluginForm(CMSPluginBase):
             if request.method == 'POST'  and int(request.POST.get('cms_form_id',0)) == form.id:
                 form_for_form = FormForForm(form, request.POST, request.FILES)
                 if form_for_form.is_valid():
+                    context.update({'valid': True})
                     entry = form_for_form.save()
                     fields = ["%s: %s" % (v.label, form_for_form.cleaned_data[k]) for (k, v) in form_for_form.fields.items()]
                     subject = form.email_subject
@@ -47,16 +59,11 @@ class PluginForm(CMSPluginBase):
                             f.seek(0)
                             msg.attach(f.name, f.read())
                         msg.send()
-                    context.update({'response': form.response})
                     return context
         except ValueError:
             pass
 
-        context.update({
-                'form': form,
-                'form_for_form': form_for_form,
-            }
-        )
+        context.update({'form_for_form': form_for_form})
         return context
 
 plugin_pool.register_plugin(PluginForm)
