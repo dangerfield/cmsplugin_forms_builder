@@ -34,7 +34,7 @@ class PluginForm(CMSPluginBase):
         
         try:
             if request.method == 'POST'  and int(request.POST.get('cms_form_id',0)) == form.id:
-                form_for_form = FormForForm(form, request.POST, request.FILES)
+                form_for_form = FormForForm(form, context, request.POST, request.FILES)
                 if form_for_form.is_valid():
                     context.update({'valid': True})
                     entry = form_for_form.save()
