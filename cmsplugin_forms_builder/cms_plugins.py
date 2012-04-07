@@ -29,7 +29,7 @@ class PluginForm(CMSPluginBase):
             context.update({'published': False})
             return context
             
-        form_for_form = FormForForm(form)
+        form_for_form = FormForForm(form, context)
         form_for_form.fields['cms_form_id'] = forms.CharField(initial=form.id, widget=forms.HiddenInput)
         
         try:
